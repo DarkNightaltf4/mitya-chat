@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mitya AI Cloud</title>
+    <title>Mitya AI - Gemma Edition</title>
     <style>
         :root { --bg: #0f0f0f; --panel: #1a1a1a; --accent: #00a2ff; --text: #e0e0e0; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; display: flex; flex-direction: column; height: 100vh; }
@@ -13,44 +13,39 @@
         .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 2px; color: white; }
         .ai { background: #2d2d2d; align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid #444; }
         .input-area { padding: 20px; background: var(--panel); display: flex; gap: 10px; border-top: 1px solid #333; }
-        input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #0a0a0a; color: white; outline: none; }
+        input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #444; background: #000; color: white; outline: none; }
         input:focus { border-color: var(--accent); }
-        select { padding: 10px; border-radius: 10px; background: #0a0a0a; color: white; border: 1px solid #444; cursor: pointer; }
         button { padding: 10px 20px; background: var(--accent); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:hover { opacity: 0.8; }
         button:disabled { background: #555; cursor: not-allowed; }
-        .clear-btn { background: #ff4444; font-size: 12px; padding: 5px 10px; }
+        .clear-btn { background: #ff4444; font-size: 11px; padding: 5px 10px; border-radius: 5px; border: none; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
     <div id="header">
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <strong>Mitya AI</strong>
-            <select id="modelSelect">
-                <option value="qwen3:8b">Qwen 3 (8B)</option>
-                <option value="qwen2.5-coder:7b">Coder</option>
-                <option value="gemma3:4b">Gemma 3</option>
-            </select>
+        <div style="display: flex; flex-direction: column;">
+            <strong style="font-size: 1.2em; color: var(--accent);">Mitya AI</strong>
+            <span style="font-size: 0.8em; color: #888;">Модель: Gemma 3 (4B)</span>
         </div>
-        <button class="clear-btn" onclick="clearChat()">Очистить память</button>
+        <button class="clear-btn" onclick="clearChat()">Сбросить диалог</button>
     </div>
 
     <div id="chat"></div>
 
     <div class="input-area">
-        <input type="text" id="userInput" placeholder="Напиши что-нибудь своей нейронке...">
+        <input type="text" id="userInput" placeholder="Напиши сообщение...">
         <button id="sendBtn">Отправить</button>
     </div>
 
     <script>
         const TUNNEL_URL = 'https://mitya-ai.loca.lt';
-        let chatHistory = []; // Тут хранится контекст
+        const MODEL_NAME = 'gemma3:4b'; // Твоя единственная модель
+        let chatHistory = []; 
 
         async function sendMsg() {
             const input = document.getElementById('userInput');
             const chat = document.getElementById('chat');
             const btn = document.getElementById('sendBtn');
-            const model = document.getElementById('modelSelect').value;
 
             if (!input.value || btn.disabled) return;
 
@@ -59,15 +54,14 @@
             input.value = '';
             btn.disabled = true;
 
-            // Добавляем сообщение пользователя в историю
             chatHistory.push({ role: 'user', content: text });
 
             try {
-                const response = await fetch(`${TUNNEL_URL}/api/chat`, { // Используем /api/chat для памяти
+                const response = await fetch(`${TUNNEL_URL}/api/chat`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        model: model,
+                        model: MODEL_NAME,
                         messages: chatHistory,
                         stream: false
                     })
@@ -76,13 +70,11 @@
                 const data = await response.json();
                 const aiMsg = data.message.content;
                 
-                // Добавляем ответ ИИ в историю
                 chatHistory.push({ role: 'assistant', content: aiMsg });
-                
                 chat.innerHTML += `<div class="msg ai">${aiMsg}</div>`;
                 chat.scrollTop = chat.scrollHeight;
             } catch (e) {
-                chat.innerHTML += `<div class="msg ai" style="color:#ff6b6b">Ошибка связи! Проверь, запущен ли туннель на ПК.</div>`;
+                chat.innerHTML += `<div class="msg ai" style="color:#ff6b6b">Ошибка связи! Проверь туннель на ПК.</div>`;
             } finally {
                 btn.disabled = false;
             }
@@ -90,7 +82,7 @@
 
         function clearChat() {
             chatHistory = [];
-            document.getElementById('chat').innerHTML = '<div class="msg ai" style="font-size: 0.8em; opacity: 0.6;">Память очищена.</div>';
+            document.getElementById('chat').innerHTML = '<div class="msg ai" style="font-size: 0.8em; opacity: 0.5; border:none; background:none;">Память очищена.</div>';
         }
 
         document.getElementById('sendBtn').onclick = sendMsg;

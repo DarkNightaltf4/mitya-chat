@@ -7,7 +7,7 @@
     <style>
         :root {
             --body-bg: #0b0d11;
-            --chat-bg: #13171f;
+            --panel-bg: #13171f;
             --accent: #0084ff;
             --user-msg: linear-gradient(135deg, #0084ff, #0055ff);
             --ai-msg: #22272e;
@@ -25,28 +25,24 @@
             overflow: hidden;
         }
 
-        /* Шапка сайта */
         header {
-            padding: 15px 20px;
-            background: rgba(19, 23, 31, 0.8);
-            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            background: var(--panel-bg);
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #30363d;
-            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
         }
 
         header h1 {
             margin: 0;
             font-size: 1.1rem;
-            letter-spacing: 0.5px;
             background: linear-gradient(to right, #0084ff, #00c6ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
-        /* Зона чата */
         #chat {
             flex: 1;
             overflow-y: auto;
@@ -54,27 +50,30 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            padding-bottom: 100px;
+            padding-bottom: 120px;
         }
+
+        /* Стиль скроллбара */
+        #chat::-webkit-scrollbar { width: 6px; }
+        #chat::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
 
         .msg {
             max-width: 85%;
-            padding: 12px 16px;
+            padding: 12px 18px;
             border-radius: 18px;
             font-size: 0.95rem;
             line-height: 1.5;
-            animation: fadeIn 0.3s ease;
             word-wrap: break-word;
+            animation: fadeIn 0.2s ease-out;
         }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
         .user {
             align-self: flex-end;
             background: var(--user-msg);
             color: white;
             border-bottom-right-radius: 4px;
-            box-shadow: 0 4px 15px rgba(0, 132, 255, 0.3);
         }
 
         .ai {
@@ -84,35 +83,33 @@
             border-bottom-left-radius: 4px;
         }
 
-        /* Индикатор загрузки */
         .typing {
-            font-style: italic;
             font-size: 0.8rem;
-            color: #8b949e;
-            margin-left: 10px;
+            color: var(--accent);
+            margin: 0 0 10px 20px;
             display: none;
+            font-weight: bold;
         }
 
-        /* Поле ввода */
         .input-container {
             position: fixed;
             bottom: 0;
             width: 100%;
             padding: 20px;
-            box-sizing: border-box;
-            background: linear-gradient(transparent, var(--body-bg) 20%);
+            background: linear-gradient(transparent, var(--body-bg) 30%);
+            display: flex;
+            justify-content: center;
         }
 
         .input-wrapper {
+            width: 100%;
             max-width: 800px;
-            margin: 0 auto;
             display: flex;
             gap: 10px;
             background: #1c2128;
-            padding: 8px 12px;
-            border-radius: 25px;
+            padding: 10px 15px;
+            border-radius: 30px;
             border: 1px solid #30363d;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         input {
@@ -120,59 +117,52 @@
             background: transparent;
             border: none;
             color: white;
-            padding: 10px;
             font-size: 1rem;
             outline: none;
         }
 
-        button {
+        .send-btn {
             background: var(--accent);
             border: none;
             color: white;
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: 0.2s;
         }
 
-        button:hover { transform: scale(1.05); }
-        button:disabled { background: #444; }
-
-        .clear-btn {
-            background: transparent;
-            color: #ff4444;
-            border: 1px solid #ff4444;
-            border-radius: 12px;
-            width: auto;
-            height: auto;
-            padding: 5px 10px;
-            font-size: 0.7rem;
+        .new-chat-btn {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-weight: bold;
         }
+
+        .new-chat-btn:hover { background: #2ea043; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Mitya AI <span style="font-weight: normal; color: #888; font-size: 0.8rem;">Gemma 3</span></h1>
-    <button class="clear-btn" onclick="clearChat()">Сброс</button>
+    <h1>Mitya AI <span style="font-weight: normal; color: #888; font-size: 0.8rem;">Gemma 3 (4B)</span></h1>
+    <button class="new-chat-btn" onclick="newChat()">+ Новый чат</button>
 </header>
 
 <div id="chat">
-    <div class="msg ai">Привет! Я Gemma 3, запущена на твоей видеокарте. Чем могу помочь?</div>
+    <div class="msg ai">Привет! Я готов к новому диалогу. О чем поболтаем?</div>
 </div>
 
 <div id="typing" class="typing">Gemma думает...</div>
 
 <div class="input-container">
     <div class="input-wrapper">
-        <input type="text" id="userInput" placeholder="Спроси о чем угодно..." autocomplete="off">
-        <button id="sendBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
-        </button>
+        <input type="text" id="userInput" placeholder="Напиши сообщение..." autocomplete="off" autofocus>
+        <button id="sendBtn" class="send-btn">➔</button>
     </div>
 </div>
 
@@ -181,21 +171,21 @@
     const MODEL_NAME = 'gemma3:4b';
     let chatHistory = [];
 
-    const chat = document.getElementById('chat');
-    const input = document.getElementById('userInput');
-    const btn = document.getElementById('sendBtn');
-    const typing = document.getElementById('typing');
+    const chatContainer = document.getElementById('chat');
+    const inputField = document.getElementById('userInput');
+    const sendButton = document.getElementById('sendBtn');
+    const typingIndicator = document.getElementById('typing');
 
     async function sendMsg() {
-        const text = input.value.trim();
-        if (!text || btn.disabled) return;
+        const text = inputField.value.trim();
+        if (!text || sendButton.disabled) return;
 
-        // Пользовательское сообщение
-        chat.innerHTML += `<div class="msg user">${text}</div>`;
-        input.value = '';
-        btn.disabled = true;
-        typing.style.display = 'block';
-        chat.scrollTop = chat.scrollHeight;
+        // Добавляем сообщение пользователя
+        chatContainer.innerHTML += `<div class="msg user">${text}</div>`;
+        inputField.value = '';
+        sendButton.disabled = true;
+        typingIndicator.style.display = 'block';
+        chatContainer.scrollTop = chatContainer.scrollHeight;
 
         chatHistory.push({ role: 'user', content: text });
 
@@ -210,27 +200,34 @@
                 })
             });
 
+            if (!response.ok) throw new Error("Server error");
+
             const data = await response.json();
             const aiMsg = data.message.content;
             
             chatHistory.push({ role: 'assistant', content: aiMsg });
-            chat.innerHTML += `<div class="msg ai">${aiMsg}</div>`;
+            chatContainer.innerHTML += `<div class="msg ai">${aiMsg}</div>`;
         } catch (e) {
-            chat.innerHTML += `<div class="msg ai" style="color:#ff6b6b">⚠️ Ошибка связи. Проверь туннель на ПК!</div>`;
+            chatContainer.innerHTML += `<div class="msg ai" style="color:#ff6b6b">⚠️ Ошибка! Проверь туннель и Ollama на ПК.</div>`;
+            console.error(e);
         } finally {
-            btn.disabled = false;
-            typing.style.display = 'none';
-            chat.scrollTop = chat.scrollHeight;
+            sendButton.disabled = false;
+            typingIndicator.style.display = 'none';
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            inputField.focus();
         }
     }
 
-    function clearChat() {
+    function newChat() {
         chatHistory = [];
-        chat.innerHTML = '<div class="msg ai" style="opacity: 0.5;">Контекст очищен.</div>';
+        chatContainer.innerHTML = '<div class="msg ai">Чат очищен. Я готов к новым задачам!</div>';
+        typingIndicator.style.display = 'none';
+        sendButton.disabled = false;
+        inputField.focus();
     }
 
-    btn.onclick = sendMsg;
-    input.onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
+    sendButton.onclick = sendMsg;
+    inputField.onkeypress = (e) => { if(e.key === 'Enter') sendMsg(); };
 </script>
 
 </body>
